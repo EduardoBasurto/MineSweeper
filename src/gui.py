@@ -1,6 +1,7 @@
 import pygame
 import board
-
+import numpy as np
+import cell
 
 class GUI(board.Board):
     def __init__(self, size, mines):
@@ -20,10 +21,16 @@ class GUI(board.Board):
         self.flag_img = r'img\flag.png'
         self.square_size = 50
         self.font_size = 30
+        self.graphic_board = np.empty((self.grid_size, self.grid_size), dtype=object)
         self.generate_mines()
         self.create_board()
-        self.gui_grid = [['UNCLICKED' for row in range(self.grid_size)] for column in range(self.grid_size)]
+        self.create_graphic_board()
         self.__init_pygame__()
+
+    def create_graphic_board(self):
+        for row in range(self.grid_size):
+            for column in range(self.grid_size):
+                self.graphic_board[row][column] = cell.Cell(row, column, self.grid[row][column])
     
     def __init_pygame__(self):
         pygame.init()
@@ -59,9 +66,9 @@ class GUI(board.Board):
                     pygame.draw.rect(self.screen, self.colors.get('GREY'), [x, y, self.square_size, self.square_size], 1)
 
                     cell_color = self.colors.get('BLACK')
-                    if self.gui_grid[row][column] == 'UNCLICKED':
+                    if self.graphic_board[row][column].state == 'UNCLICKED':
                         pygame.draw.rect(self.screen, self.colors.get('GREY'), [x+5, y+5, self.square_size-6, self.square_size-6], 0)
-                    elif self.gui_grid[row][column] == 'CLICKED':
+                    elif self.graphic_board[row][column].state == 'CLICKED':
                         if self.grid[row][column] == 0:
                             pygame.draw.rect(self.screen, self.colors.get('WHITE'), [x, y, self.square_size, self.square_size], 0)
                         if self.grid[row][column] == 1:
@@ -80,7 +87,7 @@ class GUI(board.Board):
                             cell_color = self.colors.get('RED')
                             number = self.font.render(str(self.grid[row][column]), True, cell_color)
                             self.screen.blit(number, (x + self.square_size/2 - number.get_width()/2, y + self.square_size/2 - number.get_height()/2))
-                    elif self.gui_grid[row][column] == 'SAVED':
+                    elif self.graphic_board[row][column].state == 'SAVED':
                         self.screen.blit(self.flag, (x, y))
             # --- Update the screen ---
             pygame.display.flip()
@@ -99,17 +106,17 @@ class GUI(board.Board):
 
             # left click
             if event.button == 1:
-                self.gui_grid[row][column] = 'CLICKED'
+                self.graphic_board[row][column].click_cell()
                 if self.grid[row][column] == 'X':
                     self.screen.blit(self.bomb, (column * self.square_size, row * self.square_size))
                     game_over = True
                     print('You clicked on a mine!')
                 else:
                     print('You clicked on an empty square.')
-            elif event.button == 3 and self.gui_grid[row][column] == 'UNCLICKED' and self.flags>0:
-                self.gui_grid[row][column] = 'SAVED'
+            elif event.button == 3 and self.graphic_board[row][column].state == 'UNCLICKED' and self.flags>0:
+                self.graphic_board[row][column].save_cell()
                 self.flags -= 1
-            elif event.button == 3 and self.gui_grid[row][column] == 'SAVED' and self.flags<=self.number_of_mines:
-                self.gui_grid[row][column] = 'UNCLICKED'
+            elif event.button == 3 and self.graphic_board[row][column].state == 'SAVED' and self.flags<=self.number_of_mines:
+                self.graphic_board[row][column].unclick_cell()
                 self.flags += 1
         return False
