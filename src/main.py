@@ -1,5 +1,5 @@
-import gui
+import board
 
 if __name__ == "__main__":
-    game = gui.GUI(10,10)
-    game.start_gui()
+    board = board.Board(10,10)
+    board.run_game()
