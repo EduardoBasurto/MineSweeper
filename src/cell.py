@@ -1,36 +1,46 @@
-import pygame 
-
-class Bomb():
-    def __init__(self):
-        self.url = r'img\bomb.png' 
-        pygame.init()
-        self.bomb =  pygame.image.load(self.url)
-
-class Flag():
-    def __init__(self):
-        self.url = r'img\flag.png'
-        pygame.init()
-        self.flag =  pygame.image.load(self.url)
-
 
 class Cell():
-
-    def __init__(self, row, column, content):
+    def __init__(self, row, column):
         self.row = row
         self.column = column
-        self.content = Bomb().bomb if content == 'X' else content
-        self.state = 'UNCLICKED'
+        self.clicked = False
+        self.bombed = False
+        self.flagged = False
+        self.content = 0
+        self.color = {
+            0 : (255, 255, 255),
+            1 : (0, 0, 255),       # BLUE
+            2 : (0, 255, 0),      # GREEN
+            3 : (250, 253, 15),  # YELLOW
+            4 : (255, 0, 0)         # RED
+        }
 
-    def click_cell(self):
-        self.state = 'CLICKED'
+    def __repr__(self) -> str:
+        return str(self.clicked)
 
-    def bombed(self):
-        self.state = 'CLICKED'
-        self.content = Bomb().bomb
+    def get_color(self):
+        return self.color.get(self.content, (0, 0, 0))
 
-    def unclick_cell(self):
-        self.state = 'UNCLICKED'
+    def add_one(self):
+        self.content += 1
 
-    def save_cell(self):
-        self.state = 'SAVED'
-        self.content = Flag().flag
+    def bombed_cell(self):
+        self.bombed = True
+        self.content = 'X'
+
+    def set_neighbors(self, neighbors):
+        self.neighbors = neighbors
+
+    def clicked_cell(self):
+        self.clicked = True
+
+    def unclicked_cell(self):
+        self.clicked = False
+
+    def saved_cell(self):
+        self.clicked = True
+        self.flagged = True
+    
+    def unsaved_cell(self):
+        self.clicked = False
+        self.flagged = False
